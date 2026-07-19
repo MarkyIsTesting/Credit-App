@@ -7,6 +7,20 @@ export default function Footer() {
       className="relative bg-[#0A0A0A] pt-24 md:pt-32 pb-10"
     >
       <div className="mx-auto max-w-[1600px] px-6 md:px-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.9 }}
+          className="flex justify-center md:justify-start mb-16"
+        >
+          <img
+            src="/brand/eurokredit-logo.jpg"
+            alt="EuroKredit"
+            data-testid="footer-logo"
+            className="h-20 md:h-28 w-auto object-contain"
+          />
+        </motion.div>
         <motion.h3
           initial={{ opacity: 0, y: 60 }}
           whileInView={{ opacity: 1, y: 0 }}

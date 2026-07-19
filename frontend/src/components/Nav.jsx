@@ -33,12 +33,14 @@ export default function Nav() {
         <a
           href="#top"
           data-testid="nav-logo"
-          className="flex items-center gap-2"
+          className="flex items-center gap-3 group"
           aria-label="EuroKredit — accueil"
         >
-          <span className="font-serif text-2xl tracking-tight text-white">
-            Euro<span className="italic text-[#D4AF37]">Kredit</span>
-          </span>
+          <img
+            src="/brand/eurokredit-logo.jpg"
+            alt="EuroKredit"
+            className="h-11 md:h-12 w-auto object-contain transition-transform duration-500 group-hover:scale-[1.03]"
+          />
         </a>
 
         <nav className="hidden md:flex items-center gap-10">
