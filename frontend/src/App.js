@@ -5,6 +5,7 @@ import Lenis from "lenis";
 import Home from "@/pages/Home";
 import GrainOverlay from "@/components/GrainOverlay";
 import { Toaster } from "sonner";
+import { LanguageProvider } from "@/i18n/LanguageContext";
 
 function App() {
   useEffect(() => {
@@ -33,11 +34,13 @@ function App() {
   return (
     <div className="App bg-[#0A0A0A] text-[#FAFAFA] min-h-screen">
       <GrainOverlay />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-        </Routes>
-      </BrowserRouter>
+      <LanguageProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+          </Routes>
+        </BrowserRouter>
+      </LanguageProvider>
       <Toaster
         theme="dark"
         position="bottom-right"

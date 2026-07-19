@@ -1,34 +1,17 @@
 import { motion } from "framer-motion";
+import { useLang } from "@/i18n/LanguageContext";
 
-const chapters = [
-  {
-    n: "I",
-    title: "L'écoute",
-    body:
-      "Chaque histoire financière est singulière. Nous commençons par comprendre — vraiment — vos ambitions, votre patrimoine, votre rythme. Aucun formulaire ne remplace une conversation.",
-  },
-  {
-    n: "II",
-    title: "La mesure",
-    body:
-      "Nous étudions votre dossier avec la précision d'un cabinet privé : capacité, garanties, projection. Puis nous ne proposons qu'une seule solution — la plus juste.",
-  },
-  {
-    n: "III",
-    title: "La signature",
-    body:
-      "Décision en 48 heures. Contrat lisible. Décaissement rapide. La confidentialité, l'élégance et la vitesse d'un conseil de haut vol.",
-  },
-];
+const numerals = ["I", "II", "III"];
 
 export default function Manifesto() {
+  const { t } = useLang();
+  const chapters = t("manifesto.chapters") || [];
   return (
     <section
       id="methode"
       data-testid="manifesto-section"
       className="relative bg-[#0A0A0A] py-24 md:py-40 overflow-hidden"
     >
-      {/* Background image w/ spotlight */}
       <div
         className="absolute right-0 top-1/4 w-[45%] h-[60%] pointer-events-none opacity-30"
         aria-hidden="true"
@@ -37,9 +20,7 @@ export default function Manifesto() {
           src="https://images.pexels.com/photos/15713593/pexels-photo-15713593.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
           alt=""
           className="w-full h-full object-cover grayscale"
-          style={{
-            clipPath: "polygon(20% 0, 100% 0, 100% 100%, 0 100%)",
-          }}
+          style={{ clipPath: "polygon(20% 0, 100% 0, 100% 100%, 0 100%)" }}
         />
         <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#0A0A0A]" />
       </div>
@@ -47,24 +28,22 @@ export default function Manifesto() {
       <div className="relative mx-auto max-w-[1600px] px-6 md:px-12">
         <div className="grid md:grid-cols-12 gap-8 mb-16 md:mb-24">
           <div className="md:col-span-4 flex items-start gap-4">
-            <span className="text-xs tracking-caps text-[#D4AF37] mt-2">
-              02 —
-            </span>
+            <span className="text-xs tracking-caps text-[#D4AF37] mt-2">02 —</span>
             <span className="text-xs tracking-caps text-white/60 mt-2">
-              Notre méthode
+              {t("manifesto.chip")}
             </span>
           </div>
           <h2 className="md:col-span-8 font-serif text-4xl md:text-6xl text-white leading-[1.02] tracking-tighter">
-            Trois chapitres pour{" "}
-            <span className="italic text-[#D4AF37]">un accord</span> qui vous
-            ressemble.
+            {t("manifesto.title1")}{" "}
+            <span className="italic text-[#D4AF37]">{t("manifesto.title2")}</span>{" "}
+            {t("manifesto.title3")}
           </h2>
         </div>
 
         <div className="space-y-16 md:space-y-24 md:pl-[8%]">
           {chapters.map((c, i) => (
             <motion.div
-              key={c.n}
+              key={i}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
@@ -74,7 +53,7 @@ export default function Manifesto() {
             >
               <div className="col-span-3 md:col-span-2">
                 <span className="font-serif text-6xl md:text-8xl text-white/15 leading-none italic block">
-                  {c.n}
+                  {numerals[i]}
                 </span>
               </div>
               <div className="col-span-9 md:col-span-6">
@@ -87,7 +66,7 @@ export default function Manifesto() {
               </div>
               <div className="hidden md:flex col-span-4 justify-end">
                 <span className="text-xs tracking-caps text-white/30">
-                  Chapitre {String(i + 1).padStart(2, "0")} / 03
+                  {t("manifesto.chapterLabel")} {String(i + 1).padStart(2, "0")} / 03
                 </span>
               </div>
             </motion.div>

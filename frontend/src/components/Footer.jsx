@@ -1,6 +1,10 @@
 import { motion } from "framer-motion";
+import { useLang } from "@/i18n/LanguageContext";
 
 export default function Footer() {
+  const { t } = useLang();
+  const offers = ["personnel", "immobilier", "auto", "professionnel", "rachat"];
+  const cabinetLinks = t("footer.cabinetLinks") || [];
   return (
     <footer
       data-testid="site-footer"
@@ -34,31 +38,33 @@ export default function Footer() {
         <div className="mt-16 md:mt-20 grid md:grid-cols-12 gap-10 border-t border-white/10 pt-12">
           <div className="md:col-span-4">
             <p className="text-white/60 leading-relaxed max-w-xs">
-              Établissement de crédit européen, agréé sous la supervision de
-              l'ACPR. Un accompagnement patrimonial, depuis 1998.
+              {t("footer.about")}
             </p>
           </div>
           <div className="md:col-span-2">
-            <p className="text-xs tracking-caps text-white/40 mb-4">Offres</p>
+            <p className="text-xs tracking-caps text-white/40 mb-4">
+              {t("footer.offers")}
+            </p>
             <ul className="space-y-2 text-sm text-white/70">
-              <li>Prêt personnel</li>
-              <li>Prêt immobilier</li>
-              <li>Crédit auto</li>
-              <li>Prêt professionnel</li>
-              <li>Rachat de crédit</li>
+              {offers.map((id) => (
+                <li key={id}>{t(`loanLabels.${id}`)}</li>
+              ))}
             </ul>
           </div>
           <div className="md:col-span-2">
-            <p className="text-xs tracking-caps text-white/40 mb-4">Cabinet</p>
+            <p className="text-xs tracking-caps text-white/40 mb-4">
+              {t("footer.cabinet")}
+            </p>
             <ul className="space-y-2 text-sm text-white/70">
-              <li>Notre méthode</li>
-              <li>Nos conseillers</li>
-              <li>Actualités</li>
-              <li>Presse</li>
+              {cabinetLinks.map((l, i) => (
+                <li key={i}>{l}</li>
+              ))}
             </ul>
           </div>
           <div className="md:col-span-4">
-            <p className="text-xs tracking-caps text-white/40 mb-4">Contact</p>
+            <p className="text-xs tracking-caps text-white/40 mb-4">
+              {t("footer.contact")}
+            </p>
             <p className="text-sm text-white/70">28, rue de la Banque</p>
             <p className="text-sm text-white/70">75002 Paris — France</p>
             <p className="text-sm text-white/70 mt-3">+33 (0)1 42 60 00 00</p>
@@ -67,21 +73,19 @@ export default function Footer() {
         </div>
 
         <div className="mt-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-t border-white/10 pt-8 text-xs tracking-caps text-white/40">
-          <p>© {new Date().getFullYear()} EuroKredit — Tous droits réservés</p>
+          <p>© {new Date().getFullYear()} EuroKredit — {t("footer.rights")}</p>
           <div className="flex gap-8">
             <a href="#" className="hover:text-white transition-colors">
-              Mentions légales
+              {t("footer.legal")}
             </a>
             <a href="#" className="hover:text-white transition-colors">
-              Confidentialité
+              {t("footer.privacy")}
             </a>
             <a href="#" className="hover:text-white transition-colors">
-              Cookies
+              {t("footer.cookies")}
             </a>
           </div>
-          <p>
-            Un crédit vous engage et doit être remboursé.
-          </p>
+          <p>{t("footer.disclaimer")}</p>
         </div>
       </div>
     </footer>

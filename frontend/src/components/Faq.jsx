@@ -1,39 +1,12 @@
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
+  Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
 import { motion } from "framer-motion";
-
-const items = [
-  {
-    q: "Quels sont les critères d'éligibilité ?",
-    a: "Nous étudions chaque dossier selon vos revenus, votre stabilité professionnelle et votre historique bancaire. Aucun profil type — nous privilégions l'analyse individuelle.",
-  },
-  {
-    q: "Combien de temps pour obtenir une réponse ?",
-    a: "Une pré-décision est communiquée sous 48 heures ouvrées après réception de votre dossier complet. Le décaissement intervient sous 7 à 10 jours.",
-  },
-  {
-    q: "Puis-je regrouper mes crédits existants ?",
-    a: "Oui. Notre offre de rachat de crédit permet de consolider plusieurs prêts en une seule mensualité, avec une durée et un taux ajustés à votre nouvelle capacité.",
-  },
-  {
-    q: "Les taux annoncés sont-ils garantis ?",
-    a: "Les taux affichés sont des taux d'appel indicatifs. Votre TAEG définitif dépend de votre profil, du montant, de la durée et des garanties apportées.",
-  },
-  {
-    q: "Quels justificatifs sont demandés ?",
-    a: "Pièce d'identité, justificatif de domicile, trois derniers bulletins de salaire ou bilans, et vos deux derniers relevés bancaires. Nous vous accompagnons dans la constitution du dossier.",
-  },
-  {
-    q: "Le remboursement anticipé est-il possible ?",
-    a: "Oui, partiellement ou totalement, avec des indemnités plafonnées par la réglementation européenne. Aucun frais caché.",
-  },
-];
+import { useLang } from "@/i18n/LanguageContext";
 
 export default function Faq() {
+  const { t } = useLang();
+  const items = t("faq.items") || [];
   return (
     <section
       id="faq"
@@ -45,13 +18,13 @@ export default function Faq() {
           <div className="flex items-start gap-4 mb-6">
             <span className="text-xs tracking-caps text-[#D4AF37]">05 —</span>
             <span className="text-xs tracking-caps text-white/60">
-              Questions fréquentes
+              {t("faq.chip")}
             </span>
           </div>
           <h2 className="font-serif text-4xl md:text-5xl text-white leading-[1.05] tracking-tighter">
-            Tout ce qu'il faut{" "}
-            <span className="italic text-[#D4AF37]">savoir</span>, avant de
-            signer.
+            {t("faq.title1")}{" "}
+            <span className="italic text-[#D4AF37]">{t("faq.title2")}</span>
+            {t("faq.title3")}
           </h2>
         </div>
 

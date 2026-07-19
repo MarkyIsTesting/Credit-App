@@ -1,9 +1,6 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-
-const line1 = ["Le", "capital", "qui"];
-const line2 = ["s'inscrit", "dans", "votre"];
-const line3 = ["histoire."];
+import { useLang } from "@/i18n/LanguageContext";
 
 const parent = {
   hidden: {},
@@ -19,6 +16,7 @@ const child = {
 
 export default function Hero() {
   const ref = useRef(null);
+  const { t, lang } = useLang();
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"],
@@ -27,6 +25,11 @@ export default function Hero() {
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.12]);
 
+  const line1 = t("hero.h1a") || [];
+  const line2 = t("hero.h1b") || [];
+  const line3 = t("hero.h1c") || [];
+  const stats = t("hero.stats") || [];
+
   return (
     <section
       id="top"
@@ -34,7 +37,6 @@ export default function Hero() {
       data-testid="hero-section"
       className="relative min-h-screen w-full overflow-hidden bg-[#0A0A0A] pt-32 pb-16"
     >
-      {/* Background image parallax */}
       <motion.div
         style={{ y: yImage, scale }}
         className="absolute right-0 top-24 md:top-16 h-[70%] w-[55%] md:w-[42%] overflow-hidden pointer-events-none"
@@ -52,7 +54,6 @@ export default function Hero() {
       </motion.div>
 
       <div className="relative mx-auto max-w-[1600px] px-6 md:px-12 h-full flex flex-col justify-center min-h-[80vh]">
-        {/* Eyebrow */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -62,18 +63,18 @@ export default function Hero() {
         >
           <span className="h-px w-16 bg-white/30" />
           <span className="text-xs tracking-caps text-white/60">
-            Établissement de crédit européen · Depuis 1998
+            {t("hero.eyebrow")}
           </span>
         </motion.div>
 
-        {/* Kinetic headline */}
         <motion.h1
+          key={`h1-${lang}`}
           variants={parent}
           initial="hidden"
           animate="visible"
           style={{ opacity }}
           data-testid="hero-headline"
-          className="font-serif text-white tracking-tighter leading-[0.95] text-[14vw] md:text-[10vw] lg:text-[9vw] max-w-[95%]"
+          className="font-serif text-white tracking-tighter leading-[0.95] text-[12vw] md:text-[9vw] lg:text-[8vw] max-w-[95%]"
         >
           <span className="block">
             {line1.map((w, i) => (
@@ -98,7 +99,6 @@ export default function Hero() {
           </span>
         </motion.h1>
 
-        {/* Sub / CTA row */}
         <div className="mt-12 md:mt-20 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-end">
           <motion.p
             initial={{ opacity: 0, y: 30 }}
@@ -107,9 +107,7 @@ export default function Hero() {
             data-testid="hero-subtext"
             className="md:col-span-5 text-white/60 text-base md:text-lg leading-relaxed max-w-md"
           >
-            Un accompagnement patrimonial d'exception. Nous finançons vos
-            ambitions — personnelles, immobilières, professionnelles — avec la
-            discrétion d'un cabinet privé.
+            {t("hero.sub")}
           </motion.p>
 
           <motion.div
@@ -123,14 +121,14 @@ export default function Hero() {
               data-testid="hero-cta-simulate"
               className="btn-sweep flex-1 border border-[#D4AF37] text-[#D4AF37] px-6 py-4 text-xs tracking-caps text-center transition-colors duration-300"
             >
-              Simuler mon prêt
+              {t("hero.ctaSim")}
             </a>
             <a
               href="#offres"
               data-testid="hero-cta-explore"
               className="flex-1 text-xs tracking-caps text-white/70 hover:text-white flex items-center justify-center gap-3 group"
             >
-              <span>Explorer les offres</span>
+              <span>{t("hero.ctaExplore")}</span>
               <span className="transition-transform duration-300 group-hover:translate-x-1">
                 →
               </span>
@@ -138,7 +136,6 @@ export default function Hero() {
           </motion.div>
         </div>
 
-        {/* Bottom stats row */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -146,11 +143,7 @@ export default function Hero() {
           className="mt-24 md:mt-32 grid grid-cols-3 border-t border-white/10 pt-8"
           data-testid="hero-stats"
         >
-          {[
-            { k: "27", label: "Années d'expertise" },
-            { k: "1,2 Md€", label: "Financés en 2025" },
-            { k: "48 h", label: "Décision moyenne" },
-          ].map((s, i) => (
+          {stats.map((s, i) => (
             <div key={i} className="flex flex-col gap-2">
               <span className="font-serif text-3xl md:text-5xl text-white">
                 {s.k}
