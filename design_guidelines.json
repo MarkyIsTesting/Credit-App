@@ -1,0 +1,126 @@
+{
+  "theme": "dark",
+  "project_identity": {
+    "name": "EuroKredit",
+    "description": "European premium money lending company. An Awwwards Site-of-the-Day level marketing hybrid experience.",
+    "emotional_archetype": "Luxury (Premium, Depth, Mystery) combined with Swiss & High-Contrast (Authority, Clarity).",
+    "vibe": "Luxury-goods monochrome editorial. Reads more like a high-end fashion brand than a traditional bank. Elevated, non-technical, atmospheric.",
+    "language": "French (Ensure all final UI copy is strictly in French)"
+  },
+  "typography": {
+    "headings": {
+      "family": "Cormorant Garamond",
+      "style": "font-serif, highly legible, elegant, and expressive.",
+      "tracking": "tracking-tighter",
+      "sizes": "Fluid scales up to text-6xl for H1 (Do not exceed text-6xl blindly, use clamp or sm/md/lg breaks). H2: text-4xl."
+    },
+    "body": {
+      "family": "Satoshi",
+      "fallback": "Manrope",
+      "style": "Clean, geometric sans-serif to ground the elegant serifs.",
+      "tracking": "normal",
+      "line_height": "leading-relaxed"
+    },
+    "accents": {
+      "style": "uppercase, tracking-[0.2em], text-xs to text-sm for sub-labels and manifestos."
+    }
+  },
+  "colors": {
+    "theme_mode": "dark",
+    "background": {
+      "primary": "#0A0A0A",
+      "secondary": "#1B1B1F",
+      "contrast": "#FAFAFA"
+    },
+    "text": {
+      "primary": "#FAFAFA",
+      "muted": "rgba(250, 250, 250, 0.6)",
+      "inverted": "#0A0A0A"
+    },
+    "accents": {
+      "primary": "#D4AF37",
+      "secondary": "#2A2A2A"
+    },
+    "rules": "No generic bank blues. No full-screen gradients. Apply the 'Tinted Grey' Rule: Never use pure black/gray without subtle warmth or coolness. Use 1px delicate borders in border-white/10 to separate dark surfaces."
+  },
+  "visual_enhancers": {
+    "textures": "MANDATORY: Add a subtle noise/grain overlay across the entire app to kill digital flatness. Makes dark backgrounds feel like velvet.",
+    "surfaces": "Glassmorphism with optical clarity (backdrop-blur-xl bg-black/60, border-white/10). Never use muddy gray transparency.",
+    "photography": "Editorial style. Treat images with large crop-ins, deliberate spotlights, and clipped frames. High contrast and deep shadows."
+  },
+  "layouts": {
+    "global_spacing": "Generous Spacing Philosophy. Use py-24 to py-32 for section padding. Container padding px-6 md:px-12.",
+    "hero": "Full height (min-h-screen). Asymmetric layout. Heavy focus on the kinetic text reveal and masked images.",
+    "bento_grids": "For loan types (Personnel, Immobilier, etc.), use MODE A: THE 'TETRIS' GRID. Asymmetry, gap-8 to gap-12. Overlap elements. Break perfectly symmetrical grids.",
+    "manifesto": "Numbered editorial chapters ('Notre approche', 'Notre méthode'). Vertical scroll progression with large numbers (font-serif, text-6xl, opacity-20) anchored in the background.",
+    "marquee": "Slow editorial drift (react-fast-marquee). Use text-sm or text-base tracking-[0.2em] font-serif. Pale background with dark text or dark background with muted text.",
+    "alignment": "Avoid center-alignment for body and generic layouts. Prefer left-aligned typography to enhance editorial flow and readability."
+  },
+  "components": {
+    "hero_kinetic": "Masked line-by-line reveal on load. Use framer-motion to stagger letters/words (0.02 - 0.05s).",
+    "loan_types_grid": "Bento/Tetris grid of loan options. Hover states: slight lift, delicate shadow, border lightens.",
+    "simulator": "Interactive loan calculator (Shadcn sliders customized). Must not look like a sterile form. Add grain and solid typography. Output numbers should spin/animate on change.",
+    "faq_accordion": "Shadcn Accordion, customized with bottom borders, large hit areas, elegant custom plus/minus SVG icons.",
+    "forms": "Use Shadcn Form/Input. Strip default Vercel-look. Apply minimalist lines (border-b only) or very sharp, low-radius boxed inputs.",
+    "footer": "Massive space (py-32). Dark background. Huge responsive text (e.g., text-[10vw]) CTA at the bottom."
+  },
+  "motion": {
+    "libraries": [
+      "framer-motion",
+      "@studio-freight/lenis"
+    ],
+    "patterns": [
+      "Kinetic Text Reveal: Split characters/words, mask from y: 50, rotateX: -90 or use width 0% -> 100%.",
+      "Scroll Reveals: whileInView={ opacity: 1, y: 0 } with viewport={{ once: true, margin: '-100px' }}.",
+      "Micro-interactions: Hover on buttons creates a sweep or color block shift, scaled up elements."
+    ]
+  },
+  "3d_and_media": {
+    "strategy": "Subtle Parallax or 3D hero moment. Since it's a luxury site, a subtle React Spring Parallax effect layering typography over clipped editorial photography creates deep immersion without heavy 3D mesh overhead.",
+    "fallback": "Framer Motion 3D for subtle tilt/rotation of cards."
+  },
+  "image_urls": [
+    {
+      "url": "https://images.unsplash.com/photo-1779878603885-f211807da45e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA4Mzl8MHwxfHNlYXJjaHwzfHxtb2Rlcm4lMjBmaW5hbmNlJTIwYWJzdHJhY3QlMjBsdXh1cnl8ZW58MHx8fHwxNzg0NDkxNjc5fDA&ixlib=rb-4.1.0&q=85",
+      "category": "Hero / Abstract Background",
+      "description": "Golden cracks on a black background resembling kintsugi art. Perfect for masking inside the kinetic hero text or behind the loan simulator."
+    },
+    {
+      "url": "https://images.pexels.com/photos/15713593/pexels-photo-15713593.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "category": "Lifestyle / Wealth",
+      "description": "Elegant couple enjoying wine in a luxurious private jet. Use in the 'Notre méthode' or manifesto section, clipped in an asymmetric frame with a spotlight overlay."
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1630705352366-a037e5cf9a4d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODF8MHwxfHNlYXJjaHwzfHxsdXh1cnklMjBsaWZlc3R5bGUlMjBjb3VwbGV8ZW58MHx8fHwxNzg0NDkxNjc5fDA&ixlib=rb-4.1.0&q=85",
+      "category": "Auto Loan / Lifestyle",
+      "description": "Woman in black sleeveless dress standing beside a white car. Perfect for the 'Prêt Auto' card."
+    },
+    {
+      "url": "https://images.pexels.com/photos/16810314/pexels-photo-16810314.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "category": "Architecture / Real Estate Loan",
+      "description": "Beautiful view of a historic building in Bucharest, Romania. Use for 'Prêt Immobilier' card or 'Notre approche' section."
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1760902419069-466f6f82c8b2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA4Mzl8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBmaW5hbmNlJTIwYWJzdHJhY3QlMjBsdXh1cnl8ZW58MHx8fHwxNzg0NDkxNjc5fDA&ixlib=rb-4.1.0&q=85",
+      "category": "Abstract / Divider",
+      "description": "Geometric gold starburst on dark background. Good for section dividers or subtle parallax backgrounds."
+    }
+  ],
+  "accessibility": {
+    "contrast": "Ensure minimum 4.5:1 ratio for standard text against #0A0A0A. Use text-shadow if placing text over images.",
+    "aria": "Include aria-hidden='true' for purely decorative animations or background text.",
+    "testing": "All interactive elements MUST have data-testid attributes (e.g., data-testid='loan-simulator-slider', data-testid='nav-apply-button').",
+    "motion": "Respect prefers-reduced-motion in all framer-motion variants."
+  },
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "NEVER create a generic 'AI slop' layout. Break the grid. Overlap images. Use massive typography contrasting with tiny tracking-[0.2em] labels.",
+    "Avoid centered text alignments everywhere unless completely intentional for a specific artistic reason. Left-align for flow and elegance.",
+    "Add a subtle grain/noise overlay (`pointer-events-none fixed inset-0 opacity-[0.03] mix-blend-difference`) to the main layout for a premium texture.",
+    "Install and setup `@studio-freight/lenis` in the main App wrapper for momentum scrolling.",
+    "Install `framer-motion` and `lucide-react`. Use `react-fast-marquee` for the editorial scroll.",
+    "DO NOT use a completely transparent header. Use Glassmorphism (backdrop-blur-xl bg-black/60) so navigation links are legible over imagery.",
+    "NEVER use generic placeholder images (no dummyimage.com or placehold.it).",
+    "All interactive and key informational elements MUST include a `data-testid` attribute.",
+    "Ensure the hero kinetic reveal uses character or word-level staggering (via Framer Motion)."
+  ]
+}
