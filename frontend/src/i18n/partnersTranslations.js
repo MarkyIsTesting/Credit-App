@@ -1,0 +1,141 @@
+// Partners section translations
+export const partnersTranslations = {
+  fr: {
+    partners: {
+      chip: "Partenaires & certifications",
+      title1: "Adossé aux",
+      title2: "institutions les plus rigoureuses",
+      title3: "d'Europe.",
+      subtitle:
+        "EuroKredit exerce sous le contrôle des principales autorités de tutelle financières et respecte les standards les plus exigeants en matière de conformité, de sécurité et de protection des données.",
+      certs: {
+        acpr: { name: "ACPR", type: "Autorité de tutelle", description: "Sous la supervision de la Banque de France, garante de la stabilité du système." },
+        orias: { name: "ORIAS", type: "Registre officiel", description: "Immatriculation en tant qu'intermédiaire en opérations de banque." },
+        fgdr: { name: "FGDR", type: "Garantie des dépôts", description: "Vos fonds sont protégés par le fonds de garantie européen." },
+        rgpd: { name: "RGPD", type: "Conformité UE 2016/679", description: "Vos données personnelles restent souveraines et chiffrées." },
+        iso: { name: "ISO 27001", type: "Sécurité de l'information", description: "Certification internationale du système de management de la sécurité." },
+        afub: { name: "AFUB", type: "Association reconnue", description: "Membre de l'Association Française des Usagers des Banques." },
+      },
+      stat1: "Financés en 2025 auprès de nos clients",
+      stat2: "Garantie plafond par déposant (FGDR)",
+      stat3: "D'existence sous supervision continue",
+      stat4: "Audit annuel de conformité sécurité",
+    },
+    nav: { partenaires: "Partenaires" },
+  },
+  nl: {
+    partners: {
+      chip: "Partners & certificeringen",
+      title1: "Verankerd in de",
+      title2: "meest veeleisende instellingen",
+      title3: "van Europa.",
+      subtitle:
+        "EuroKredit staat onder toezicht van de belangrijkste Europese financiële autoriteiten en respecteert de strengste normen op het gebied van compliance, beveiliging en gegevensbescherming.",
+      certs: {
+        acpr: { name: "ACPR", type: "Toezichthouder", description: "Onder toezicht van de Banque de France, hoedster van de systeemstabiliteit." },
+        orias: { name: "ORIAS", type: "Officieel register", description: "Geregistreerd als tussenpersoon in bankverrichtingen." },
+        fgdr: { name: "FGDR", type: "Depositogarantie", description: "Uw fondsen zijn beschermd door het Europese garantiefonds." },
+        rgpd: { name: "AVG", type: "EU-conformiteit 2016/679", description: "Uw persoonsgegevens blijven soeverein en versleuteld." },
+        iso: { name: "ISO 27001", type: "Informatiebeveiliging", description: "Internationale certificering voor beveiligingsmanagement." },
+        afub: { name: "AFUB", type: "Erkende vereniging", description: "Lid van de Franse Vereniging van Bankgebruikers." },
+      },
+      stat1: "In 2025 aan klanten uitgekeerd",
+      stat2: "Depositogarantie per klant (FGDR)",
+      stat3: "Onder continu toezicht bestaand",
+      stat4: "Jaarlijkse compliance- en beveiligingsaudit",
+    },
+    nav: { partenaires: "Partners" },
+  },
+  de: {
+    partners: {
+      chip: "Partner & Zertifizierungen",
+      title1: "Verankert bei den",
+      title2: "anspruchsvollsten Institutionen",
+      title3: "Europas.",
+      subtitle:
+        "EuroKredit unterliegt der Aufsicht der wichtigsten europäischen Finanzbehörden und erfüllt die höchsten Standards in Compliance, Sicherheit und Datenschutz.",
+      certs: {
+        acpr: { name: "ACPR", type: "Aufsichtsbehörde", description: "Unter Aufsicht der Banque de France, Hüterin der Systemstabilität." },
+        orias: { name: "ORIAS", type: "Amtliches Register", description: "Registriert als Vermittler von Bankgeschäften." },
+        fgdr: { name: "FGDR", type: "Einlagensicherung", description: "Ihre Gelder sind durch den europäischen Garantiefonds geschützt." },
+        rgpd: { name: "DSGVO", type: "EU-Konformität 2016/679", description: "Ihre personenbezogenen Daten bleiben souverän und verschlüsselt." },
+        iso: { name: "ISO 27001", type: "Informationssicherheit", description: "Internationale Zertifizierung für Sicherheitsmanagement." },
+        afub: { name: "AFUB", type: "Anerkannter Verband", description: "Mitglied des französischen Verbands der Bankkunden." },
+      },
+      stat1: "2025 an Kunden ausbezahlt",
+      stat2: "Einlagensicherung pro Einleger (FGDR)",
+      stat3: "Unter kontinuierlicher Aufsicht tätig",
+      stat4: "Jährliches Compliance- und Sicherheitsaudit",
+    },
+    nav: { partenaires: "Partner" },
+  },
+  es: {
+    partners: {
+      chip: "Socios y certificaciones",
+      title1: "Respaldados por las",
+      title2: "instituciones más rigurosas",
+      title3: "de Europa.",
+      subtitle:
+        "EuroKredit opera bajo el control de las principales autoridades financieras europeas y cumple los estándares más exigentes en cumplimiento normativo, seguridad y protección de datos.",
+      certs: {
+        acpr: { name: "ACPR", type: "Autoridad supervisora", description: "Bajo la supervisión del Banco de Francia, garante de la estabilidad del sistema." },
+        orias: { name: "ORIAS", type: "Registro oficial", description: "Inscrito como intermediario en operaciones bancarias." },
+        fgdr: { name: "FGDR", type: "Garantía de depósitos", description: "Sus fondos están protegidos por el fondo de garantía europeo." },
+        rgpd: { name: "RGPD", type: "Conformidad UE 2016/679", description: "Sus datos personales permanecen soberanos y cifrados." },
+        iso: { name: "ISO 27001", type: "Seguridad de la información", description: "Certificación internacional del sistema de gestión de seguridad." },
+        afub: { name: "AFUB", type: "Asociación reconocida", description: "Miembro de la Asociación Francesa de Usuarios Bancarios." },
+      },
+      stat1: "Financiados en 2025 a nuestros clientes",
+      stat2: "Garantía máxima por depositante (FGDR)",
+      stat3: "De existencia bajo supervisión continua",
+      stat4: "Auditoría anual de conformidad y seguridad",
+    },
+    nav: { partenaires: "Socios" },
+  },
+  pt: {
+    partners: {
+      chip: "Parceiros e certificações",
+      title1: "Ancorados nas",
+      title2: "instituições mais rigorosas",
+      title3: "da Europa.",
+      subtitle:
+        "A EuroKredit opera sob o controlo das principais autoridades financeiras europeias e respeita os padrões mais exigentes em conformidade, segurança e proteção de dados.",
+      certs: {
+        acpr: { name: "ACPR", type: "Autoridade de supervisão", description: "Sob supervisão do Banco de França, garante da estabilidade do sistema." },
+        orias: { name: "ORIAS", type: "Registo oficial", description: "Registada como intermediária em operações bancárias." },
+        fgdr: { name: "FGDR", type: "Garantia de depósitos", description: "Os seus fundos estão protegidos pelo fundo de garantia europeu." },
+        rgpd: { name: "RGPD", type: "Conformidade UE 2016/679", description: "Os seus dados pessoais permanecem soberanos e cifrados." },
+        iso: { name: "ISO 27001", type: "Segurança da informação", description: "Certificação internacional do sistema de gestão de segurança." },
+        afub: { name: "AFUB", type: "Associação reconhecida", description: "Membro da Associação Francesa dos Utilizadores dos Bancos." },
+      },
+      stat1: "Financiados em 2025 aos nossos clientes",
+      stat2: "Garantia máxima por depositante (FGDR)",
+      stat3: "De existência sob supervisão contínua",
+      stat4: "Auditoria anual de conformidade e segurança",
+    },
+    nav: { partenaires: "Parceiros" },
+  },
+  pl: {
+    partners: {
+      chip: "Partnerzy i certyfikaty",
+      title1: "Osadzeni w",
+      title2: "najbardziej rygorystycznych instytucjach",
+      title3: "Europy.",
+      subtitle:
+        "EuroKredit działa pod kontrolą głównych europejskich organów nadzoru finansowego i przestrzega najwyższych standardów zgodności, bezpieczeństwa i ochrony danych.",
+      certs: {
+        acpr: { name: "ACPR", type: "Organ nadzoru", description: "Pod nadzorem Banku Francji, strażnika stabilności systemu." },
+        orias: { name: "ORIAS", type: "Rejestr urzędowy", description: "Zarejestrowany jako pośrednik w operacjach bankowych." },
+        fgdr: { name: "FGDR", type: "Gwarancja depozytów", description: "Twoje środki są chronione przez europejski fundusz gwarancyjny." },
+        rgpd: { name: "RODO", type: "Zgodność UE 2016/679", description: "Twoje dane osobowe pozostają suwerenne i zaszyfrowane." },
+        iso: { name: "ISO 27001", type: "Bezpieczeństwo informacji", description: "Międzynarodowa certyfikacja systemu zarządzania bezpieczeństwem." },
+        afub: { name: "AFUB", type: "Uznane stowarzyszenie", description: "Członek Francuskiego Stowarzyszenia Użytkowników Banków." },
+      },
+      stat1: "Sfinansowanych w 2025 klientom",
+      stat2: "Gwarancja maksymalna na deponenta (FGDR)",
+      stat3: "Istnienia pod ciągłym nadzorem",
+      stat4: "Roczny audyt zgodności i bezpieczeństwa",
+    },
+    nav: { partenaires: "Partnerzy" },
+  },
+};

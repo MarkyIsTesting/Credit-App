@@ -1,19 +1,22 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { translations as baseTranslations, DEFAULT_LANG, LANGUAGES } from "@/i18n/translations";
 import { authTranslations } from "@/i18n/authTranslations";
+import { partnersTranslations } from "@/i18n/partnersTranslations";
 
 // Merge base translations with auth/dashboard translations
 const translations = Object.fromEntries(
   Object.keys(baseTranslations).map((code) => {
     const base = baseTranslations[code] || {};
     const extra = authTranslations[code] || {};
+    const partners = partnersTranslations[code] || {};
     return [
       code,
       {
         ...base,
         ...extra,
+        ...partners,
         // Deep-merge `nav` (avoid overwriting the entire block)
-        nav: { ...(base.nav || {}), ...(extra.nav || {}) },
+        nav: { ...(base.nav || {}), ...(extra.nav || {}), ...(partners.nav || {}) },
       },
     ];
   })

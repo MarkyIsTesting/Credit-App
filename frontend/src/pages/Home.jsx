@@ -5,6 +5,7 @@ import LoanTypes from "@/components/LoanTypes";
 import Manifesto from "@/components/Manifesto";
 import Simulator from "@/components/Simulator";
 import Testimonials from "@/components/Testimonials";
+import Partners from "@/components/Partners";
 import Faq from "@/components/Faq";
 import ContactForm from "@/components/ContactForm";
 import Footer from "@/components/Footer";
@@ -19,6 +20,7 @@ export default function Home() {
       <Manifesto />
       <Simulator />
       <Testimonials />
+      <Partners />
       <Faq />
       <ContactForm />
       <Footer />
