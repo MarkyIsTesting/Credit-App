@@ -10,10 +10,17 @@ from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 from pathlib import Path
 
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends, BackgroundTasks
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
+
+from email_service import (
+    send_welcome_email,
+    send_application_created_email,
+    send_step_email,
+    STEPS,
+)
 
 
 # -------- Setup --------
@@ -136,8 +143,8 @@ class LoanApplicationCreate(BaseModel):
     message: Optional[str] = None
 
 
-# 5-step process
-STEPS = ["submitted", "review", "preapproved", "contract_sent", "disbursed"]
+# 5-step process (imported from email_service)
+FRONTEND_URL_ENV = os.environ.get("FRONTEND_URL", "")
 
 
 class LoanApplication(LoanApplicationCreate):
@@ -227,7 +234,7 @@ async def create_contact(payload: ContactMessageCreate):
 
 # -------- Auth routes --------
 @api_router.post("/auth/register", response_model=UserOut)
-async def register(payload: RegisterIn, response: Response):
+async def register(payload: RegisterIn, response: Response, background: BackgroundTasks):
     email = payload.email.lower().strip()
     if await db.users.find_one({"email": email}):
         raise HTTPException(status_code=400, detail="Un compte existe déjà avec cet email.")
@@ -248,6 +255,7 @@ async def register(payload: RegisterIn, response: Response):
     )
 
     set_auth_cookies(response, user["id"], user["email"])
+    background.add_task(send_welcome_email, user["email"], user["name"], FRONTEND_URL_ENV)
     user.pop("password_hash", None)
     return user
 
@@ -311,7 +319,7 @@ async def refresh(request: Request, response: Response):
 
 # -------- Applications --------
 @api_router.post("/applications", response_model=LoanApplication)
-async def create_application(payload: LoanApplicationCreate, request: Request):
+async def create_application(payload: LoanApplicationCreate, request: Request, background: BackgroundTasks):
     # Optional auth: attach user_id if a valid token is present
     user_id = None
     token = request.cookies.get("access_token")
@@ -329,6 +337,10 @@ async def create_application(payload: LoanApplicationCreate, request: Request):
 
     obj = LoanApplication(**payload.model_dump(), user_id=user_id)
     await db.loan_applications.insert_one(obj.model_dump())
+    background.add_task(
+        send_application_created_email,
+        obj.email, obj.full_name, obj.id, obj.loan_type, obj.amount, obj.duration_months, FRONTEND_URL_ENV,
+    )
     return obj
 
 
@@ -358,7 +370,7 @@ async def list_applications(user: dict = Depends(require_admin)):
 
 
 @api_router.patch("/applications/{app_id}/step", response_model=LoanApplication)
-async def update_step(app_id: str, payload: StepUpdate, user: dict = Depends(require_admin)):
+async def update_step(app_id: str, payload: StepUpdate, background: BackgroundTasks, user: dict = Depends(require_admin)):
     step_name = STEPS[payload.step_index]
     result = await db.loan_applications.find_one_and_update(
         {"id": app_id},
@@ -368,6 +380,10 @@ async def update_step(app_id: str, payload: StepUpdate, user: dict = Depends(req
     )
     if not result:
         raise HTTPException(status_code=404, detail="Demande introuvable")
+    background.add_task(
+        send_step_email,
+        result.get("email"), result.get("full_name"), app_id, step_name, FRONTEND_URL_ENV,
+    )
     return LoanApplication(**result)
 
 
