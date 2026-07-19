@@ -3,16 +3,25 @@ import "@/index.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Lenis from "lenis";
 import Home from "@/pages/Home";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import ClientDashboard from "@/pages/ClientDashboard";
+import ApplicationDetail from "@/pages/ApplicationDetail";
+import NewApplication from "@/pages/NewApplication";
 import GrainOverlay from "@/components/GrainOverlay";
 import { Toaster } from "sonner";
 import { LanguageProvider } from "@/i18n/LanguageContext";
+import { AuthProvider } from "@/auth/AuthContext";
+import ProtectedRoute from "@/auth/ProtectedRoute";
 
-function App() {
+function LenisSetup() {
   useEffect(() => {
     const prefersReduced =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReduced) return;
+    // Only enable smooth scroll on the marketing home
+    if (window.location.pathname !== "/") return;
 
     const lenis = new Lenis({
       duration: 1.25,
@@ -30,16 +39,48 @@ function App() {
       lenis.destroy();
     };
   }, []);
+  return null;
+}
 
+function App() {
   return (
     <div className="App bg-[#0A0A0A] text-[#FAFAFA] min-h-screen">
       <GrainOverlay />
       <LanguageProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Home />} />
-          </Routes>
-        </BrowserRouter>
+        <AuthProvider>
+          <BrowserRouter>
+            <LenisSetup />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route
+                path="/client"
+                element={
+                  <ProtectedRoute>
+                    <ClientDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/client/new"
+                element={
+                  <ProtectedRoute>
+                    <NewApplication />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/client/applications/:id"
+                element={
+                  <ProtectedRoute>
+                    <ApplicationDetail />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
       </LanguageProvider>
       <Toaster
         theme="dark"

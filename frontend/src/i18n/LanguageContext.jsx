@@ -1,5 +1,23 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { translations, DEFAULT_LANG, LANGUAGES } from "@/i18n/translations";
+import { translations as baseTranslations, DEFAULT_LANG, LANGUAGES } from "@/i18n/translations";
+import { authTranslations } from "@/i18n/authTranslations";
+
+// Merge base translations with auth/dashboard translations
+const translations = Object.fromEntries(
+  Object.keys(baseTranslations).map((code) => {
+    const base = baseTranslations[code] || {};
+    const extra = authTranslations[code] || {};
+    return [
+      code,
+      {
+        ...base,
+        ...extra,
+        // Deep-merge `nav` (avoid overwriting the entire block)
+        nav: { ...(base.nav || {}), ...(extra.nav || {}) },
+      },
+    ];
+  })
+);
 
 const LanguageContext = createContext({
   lang: DEFAULT_LANG,

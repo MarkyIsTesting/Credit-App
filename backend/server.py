@@ -1,22 +1,30 @@
-from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+load_dotenv()
+
 import os
 import logging
-from pathlib import Path
-from pydantic import BaseModel, Field, EmailStr, ConfigDict
-from typing import List, Optional
 import uuid
-from datetime import datetime, timezone
+import jwt
+import bcrypt
+from datetime import datetime, timezone, timedelta
+from typing import List, Optional
+from pathlib import Path
+
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends
+from starlette.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
+from pydantic import BaseModel, Field, EmailStr, ConfigDict
 
 
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
-
+# -------- Setup --------
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+JWT_SECRET = os.environ["JWT_SECRET"]
+JWT_ALGORITHM = "HS256"
+ACCESS_MINUTES = 60 * 24  # 1 day for convenience
+REFRESH_DAYS = 7
 
 app = FastAPI(title="EuroKredit API")
 api_router = APIRouter(prefix="/api")
@@ -26,7 +34,96 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-# ----- Models -----
+# -------- Password helpers --------
+def hash_password(password: str) -> str:
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+
+
+def verify_password(plain: str, hashed: str) -> bool:
+    try:
+        return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+    except Exception:
+        return False
+
+
+# -------- JWT --------
+def create_access_token(user_id: str, email: str) -> str:
+    payload = {
+        "sub": user_id, "email": email,
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=ACCESS_MINUTES),
+        "type": "access",
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def create_refresh_token(user_id: str) -> str:
+    payload = {
+        "sub": user_id,
+        "exp": datetime.now(timezone.utc) + timedelta(days=REFRESH_DAYS),
+        "type": "refresh",
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def set_auth_cookies(response: Response, user_id: str, email: str):
+    access = create_access_token(user_id, email)
+    refresh = create_refresh_token(user_id)
+    response.set_cookie("access_token", access, httponly=True, secure=True, samesite="none", max_age=ACCESS_MINUTES * 60, path="/")
+    response.set_cookie("refresh_token", refresh, httponly=True, secure=True, samesite="none", max_age=REFRESH_DAYS * 86400, path="/")
+
+
+# -------- Auth dependency --------
+async def get_current_user(request: Request) -> dict:
+    token = request.cookies.get("access_token")
+    if not token:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:]
+    if not token:
+        raise HTTPException(status_code=401, detail="Non authentifié")
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        if payload.get("type") != "access":
+            raise HTTPException(status_code=401, detail="Type de jeton invalide")
+        user = await db.users.find_one({"id": payload["sub"]}, {"_id": 0, "password_hash": 0})
+        if not user:
+            raise HTTPException(status_code=401, detail="Utilisateur introuvable")
+        return user
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Jeton expiré")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Jeton invalide")
+
+
+async def require_admin(user: dict = Depends(get_current_user)) -> dict:
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Accès administrateur requis")
+    return user
+
+
+# -------- Models --------
+class RegisterIn(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    name: str = Field(min_length=2, max_length=120)
+    email: EmailStr
+    password: str = Field(min_length=6, max_length=128)
+
+
+class LoginIn(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    email: EmailStr
+    password: str
+
+
+class UserOut(BaseModel):
+    id: str
+    name: str
+    email: EmailStr
+    role: str
+    created_at: str
+
+
 class LoanApplicationCreate(BaseModel):
     model_config = ConfigDict(extra="ignore")
     full_name: str = Field(min_length=2, max_length=120)
@@ -39,10 +136,17 @@ class LoanApplicationCreate(BaseModel):
     message: Optional[str] = None
 
 
+# 5-step process
+STEPS = ["submitted", "review", "preapproved", "contract_sent", "disbursed"]
+
+
 class LoanApplication(LoanApplicationCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    status: str = "pending"
+    user_id: Optional[str] = None
+    status: str = "submitted"  # current step
+    step_index: int = 0
     created_at: str = Field(default_factory=now_iso)
+    updated_at: str = Field(default_factory=now_iso)
 
 
 class ContactMessageCreate(BaseModel):
@@ -73,13 +177,11 @@ class SimulatorResponse(BaseModel):
     loan_type: str
 
 
-RATES = {
-    "personnel": 4.9,
-    "immobilier": 3.2,
-    "auto": 4.2,
-    "professionnel": 5.5,
-    "rachat": 4.5,
-}
+class StepUpdate(BaseModel):
+    step_index: int = Field(ge=0, le=4)
+
+
+RATES = {"personnel": 4.9, "immobilier": 3.2, "auto": 4.2, "professionnel": 5.5, "rachat": 4.5}
 
 
 def compute_monthly(amount: float, rate_pct: float, months: int) -> float:
@@ -89,10 +191,15 @@ def compute_monthly(amount: float, rate_pct: float, months: int) -> float:
     return amount * r / (1 - (1 + r) ** -months)
 
 
-# ----- Routes -----
+# -------- Public routes --------
 @api_router.get("/")
 async def root():
     return {"service": "EuroKredit API", "status": "ok"}
+
+
+@api_router.get("/rates")
+async def get_rates():
+    return {"rates": RATES}
 
 
 @api_router.post("/simulator", response_model=SimulatorResponse)
@@ -111,19 +218,6 @@ async def simulate(payload: SimulatorRequest):
     )
 
 
-@api_router.post("/applications", response_model=LoanApplication)
-async def create_application(payload: LoanApplicationCreate):
-    obj = LoanApplication(**payload.model_dump())
-    await db.loan_applications.insert_one(obj.model_dump())
-    return obj
-
-
-@api_router.get("/applications", response_model=List[LoanApplication])
-async def list_applications():
-    docs = await db.loan_applications.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
-    return [LoanApplication(**d) for d in docs]
-
-
 @api_router.post("/contact", response_model=ContactMessage)
 async def create_contact(payload: ContactMessageCreate):
     obj = ContactMessage(**payload.model_dump())
@@ -131,26 +225,198 @@ async def create_contact(payload: ContactMessageCreate):
     return obj
 
 
-@api_router.get("/rates")
-async def get_rates():
-    return {"rates": RATES}
+# -------- Auth routes --------
+@api_router.post("/auth/register", response_model=UserOut)
+async def register(payload: RegisterIn, response: Response):
+    email = payload.email.lower().strip()
+    if await db.users.find_one({"email": email}):
+        raise HTTPException(status_code=400, detail="Un compte existe déjà avec cet email.")
+    user = {
+        "id": str(uuid.uuid4()),
+        "name": payload.name.strip(),
+        "email": email,
+        "password_hash": hash_password(payload.password),
+        "role": "client",
+        "created_at": now_iso(),
+    }
+    await db.users.insert_one(user)
+
+    # Auto-link any existing applications submitted with same email but without user_id
+    await db.loan_applications.update_many(
+        {"email": email, "$or": [{"user_id": None}, {"user_id": {"$exists": False}}]},
+        {"$set": {"user_id": user["id"], "updated_at": now_iso()}},
+    )
+
+    set_auth_cookies(response, user["id"], user["email"])
+    user.pop("password_hash", None)
+    return user
+
+
+@api_router.post("/auth/login", response_model=UserOut)
+async def login(payload: LoginIn, request: Request, response: Response):
+    email = payload.email.lower().strip()
+
+    # Brute force protection
+    ident = f"{request.client.host if request.client else 'unknown'}:{email}"
+    fifteen_ago = (datetime.now(timezone.utc) - timedelta(minutes=15)).isoformat()
+    recent = await db.login_attempts.count_documents({"identifier": ident, "at": {"$gt": fifteen_ago}})
+    if recent >= 5:
+        raise HTTPException(status_code=429, detail="Trop de tentatives. Réessayez dans 15 minutes.")
+
+    user = await db.users.find_one({"email": email})
+    if not user or not verify_password(payload.password, user["password_hash"]):
+        await db.login_attempts.insert_one({"identifier": ident, "at": now_iso()})
+        raise HTTPException(status_code=401, detail="Email ou mot de passe invalide.")
+
+    # Clear attempts on success
+    await db.login_attempts.delete_many({"identifier": ident})
+
+    set_auth_cookies(response, user["id"], user["email"])
+    user.pop("password_hash", None)
+    user.pop("_id", None)
+    return user
+
+
+@api_router.post("/auth/logout")
+async def logout(response: Response):
+    response.delete_cookie("access_token", path="/")
+    response.delete_cookie("refresh_token", path="/")
+    return {"ok": True}
+
+
+@api_router.get("/auth/me", response_model=UserOut)
+async def me(user: dict = Depends(get_current_user)):
+    return user
+
+
+@api_router.post("/auth/refresh")
+async def refresh(request: Request, response: Response):
+    token = request.cookies.get("refresh_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Aucun jeton de rafraîchissement")
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        if payload.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="Type de jeton invalide")
+        user = await db.users.find_one({"id": payload["sub"]}, {"_id": 0, "password_hash": 0})
+        if not user:
+            raise HTTPException(status_code=401, detail="Utilisateur introuvable")
+        set_auth_cookies(response, user["id"], user["email"])
+        return {"ok": True}
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Jeton de rafraîchissement expiré")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Jeton invalide")
+
+
+# -------- Applications --------
+@api_router.post("/applications", response_model=LoanApplication)
+async def create_application(payload: LoanApplicationCreate, request: Request):
+    # Optional auth: attach user_id if a valid token is present
+    user_id = None
+    token = request.cookies.get("access_token")
+    if not token:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:]
+    if token:
+        try:
+            pl = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            if pl.get("type") == "access":
+                user_id = pl.get("sub")
+        except Exception:
+            user_id = None
+
+    obj = LoanApplication(**payload.model_dump(), user_id=user_id)
+    await db.loan_applications.insert_one(obj.model_dump())
+    return obj
+
+
+@api_router.get("/applications/me", response_model=List[LoanApplication])
+async def my_applications(user: dict = Depends(get_current_user)):
+    docs = await db.loan_applications.find(
+        {"$or": [{"user_id": user["id"]}, {"email": user["email"]}]},
+        {"_id": 0},
+    ).sort("created_at", -1).to_list(500)
+    return [LoanApplication(**d) for d in docs]
+
+
+@api_router.get("/applications/{app_id}", response_model=LoanApplication)
+async def get_application(app_id: str, user: dict = Depends(get_current_user)):
+    doc = await db.loan_applications.find_one({"id": app_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Demande introuvable")
+    if user.get("role") != "admin" and doc.get("user_id") != user["id"] and doc.get("email") != user["email"]:
+        raise HTTPException(status_code=403, detail="Accès interdit")
+    return LoanApplication(**doc)
+
+
+@api_router.get("/applications", response_model=List[LoanApplication])
+async def list_applications(user: dict = Depends(require_admin)):
+    docs = await db.loan_applications.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    return [LoanApplication(**d) for d in docs]
+
+
+@api_router.patch("/applications/{app_id}/step", response_model=LoanApplication)
+async def update_step(app_id: str, payload: StepUpdate, user: dict = Depends(require_admin)):
+    step_name = STEPS[payload.step_index]
+    result = await db.loan_applications.find_one_and_update(
+        {"id": app_id},
+        {"$set": {"step_index": payload.step_index, "status": step_name, "updated_at": now_iso()}},
+        return_document=True,
+        projection={"_id": 0},
+    )
+    if not result:
+        raise HTTPException(status_code=404, detail="Demande introuvable")
+    return LoanApplication(**result)
 
 
 app.include_router(api_router)
 
+
+# -------- CORS --------
+frontend_url = os.environ.get("FRONTEND_URL")
+allowed_origins = [frontend_url] if frontend_url else ["*"]
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+
+# -------- Startup --------
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+
+@app.on_event("startup")
+async def startup():
+    await db.users.create_index("email", unique=True)
+    await db.loan_applications.create_index("user_id")
+    await db.loan_applications.create_index("email")
+    await db.login_attempts.create_index("identifier")
+    # Seed admin
+    admin_email = os.environ.get("ADMIN_EMAIL", "admin@eurokredit.fr")
+    admin_password = os.environ.get("ADMIN_PASSWORD", "Admin2026!")
+    existing = await db.users.find_one({"email": admin_email})
+    if existing is None:
+        await db.users.insert_one({
+            "id": str(uuid.uuid4()),
+            "name": "Administrateur",
+            "email": admin_email,
+            "password_hash": hash_password(admin_password),
+            "role": "admin",
+            "created_at": now_iso(),
+        })
+        logger.info("Admin utilisateur créé : %s", admin_email)
+    elif not verify_password(admin_password, existing["password_hash"]):
+        await db.users.update_one(
+            {"email": admin_email},
+            {"$set": {"password_hash": hash_password(admin_password)}},
+        )
+        logger.info("Mot de passe admin mis à jour : %s", admin_email)
 
 
 @app.on_event("shutdown")

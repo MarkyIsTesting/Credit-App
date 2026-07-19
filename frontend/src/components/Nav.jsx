@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useLang } from "@/i18n/LanguageContext";
+import { useAuth } from "@/auth/AuthContext";
+import { Link } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Globe, Check, ChevronDown } from "lucide-react";
+import { Globe, Check, ChevronDown, User } from "lucide-react";
 
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const { lang, setLang, languages, t } = useLang();
+  const { user } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -110,6 +113,25 @@ export default function Nav() {
           >
             {t("nav.apply")}
           </a>
+
+          {user ? (
+            <Link
+              to="/client"
+              data-testid="nav-space-button"
+              className="btn-sweep hidden md:inline-flex items-center gap-2 border border-[#D4AF37] text-[#D4AF37] px-4 py-3 text-xs tracking-caps"
+            >
+              <User className="w-3.5 h-3.5" />
+              {t("nav.space")}
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              data-testid="nav-signin-button"
+              className="text-xs tracking-caps text-white/70 hover:text-white transition-colors hidden md:inline-block"
+            >
+              {t("nav.signIn")}
+            </Link>
+          )}
         </div>
       </div>
     </motion.header>
