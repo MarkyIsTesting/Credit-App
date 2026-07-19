@@ -118,18 +118,19 @@ export default function Nav() {
             <Link
               to="/client"
               data-testid="nav-space-button"
-              className="btn-sweep hidden md:inline-flex items-center gap-2 border border-[#D4AF37] text-[#D4AF37] px-4 py-3 text-xs tracking-caps"
+              className="btn-sweep inline-flex items-center gap-2 border border-[#D4AF37] text-[#D4AF37] px-3 sm:px-4 py-3 text-xs tracking-caps"
             >
               <User className="w-3.5 h-3.5" />
-              {t("nav.space")}
+              <span className="hidden sm:inline">{t("nav.space")}</span>
             </Link>
           ) : (
             <Link
               to="/login"
               data-testid="nav-signin-button"
-              className="text-xs tracking-caps text-white/70 hover:text-white transition-colors hidden md:inline-block"
+              className="btn-sweep inline-flex items-center gap-2 border border-[#D4AF37] text-[#D4AF37] px-3 sm:px-4 py-3 text-xs tracking-caps"
             >
-              {t("nav.signIn")}
+              <User className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t("nav.signIn")}</span>
             </Link>
           )}
         </div>
