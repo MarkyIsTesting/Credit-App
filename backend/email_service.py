@@ -1,11 +1,30 @@
 import os
 import logging
-import httpx
+from email.message import EmailMessage
+
+import aiosmtplib
 
 logger = logging.getLogger(__name__)
 
-EMAIL_BASE_URL = "https://integrations.emergentagent.com"
-EMAIL_KEY = os.environ.get("EMERGENT_EMAIL_KEY", "")
+# -------- SMTP configuration (standard, provider-agnostic) --------
+# Works with any SMTP provider: Gmail, Brevo, Mailgun, SendGrid, Amazon SES, Postmark, etc.
+# If SMTP_HOST is not set, email sending is a safe no-op (the app keeps working normally).
+#
+#   SMTP_HOST      e.g. smtp-relay.brevo.com / smtp.gmail.com / smtp.sendgrid.net
+#   SMTP_PORT      587 (STARTTLS, default) or 465 (implicit SSL)
+#   SMTP_USER      SMTP username / login
+#   SMTP_PASSWORD  SMTP password / API key
+#   SMTP_FROM      envelope + header From address (e.g. no-reply@votre-domaine.fr)
+#   SMTP_STARTTLS  "true" (default) for port 587 STARTTLS
+#   SMTP_SSL       "true" for port 465 implicit TLS (overrides STARTTLS)
+#   EMAIL_FROM_NAME  display name (default "EuroKredit")
+SMTP_HOST = os.environ.get("SMTP_HOST", "")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+SMTP_USER = os.environ.get("SMTP_USER", "")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+SMTP_FROM = os.environ.get("SMTP_FROM", "no-reply@eurokredit.fr")
+SMTP_STARTTLS = os.environ.get("SMTP_STARTTLS", "true").lower() == "true"
+SMTP_SSL = os.environ.get("SMTP_SSL", "false").lower() == "true"
 EMAIL_FROM_NAME = os.environ.get("EMAIL_FROM_NAME", "EuroKredit")
 
 # 5-step process
@@ -131,28 +150,33 @@ def _base_html(title: str, eyebrow: str, greeting: str, body: str, cta_label: st
 
 async def _send(recipient: str, subject: str, html: str) -> None:
     """Fire-and-log: never let email failures break the main flow."""
-    if not EMAIL_KEY:
-        logger.warning("EMERGENT_EMAIL_KEY missing, skipping email to %s", recipient)
+    if not SMTP_HOST:
+        logger.info("SMTP not configured (SMTP_HOST unset), skipping email '%s' to %s", subject, recipient)
         return
-    payload = {
-        "to": [recipient],
-        "subject": subject,
-        "html": html,
-        "from_name": EMAIL_FROM_NAME,
-    }
+
+    message = EmailMessage()
+    message["From"] = f"{EMAIL_FROM_NAME} <{SMTP_FROM}>"
+    message["To"] = recipient
+    message["Subject"] = subject
+    message.set_content(
+        "Cet email nécessite un client compatible HTML pour un affichage optimal."
+    )
+    message.add_alternative(html, subtype="html")
+
     try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            r = await client.post(
-                f"{EMAIL_BASE_URL}/api/v1/email/send",
-                headers={"X-Email-Key": EMAIL_KEY},
-                json=payload,
-            )
-        if r.status_code >= 300:
-            logger.error("Email failed %s -> %s : %s", subject, recipient, r.text[:250])
-        else:
-            logger.info("Email sent %s -> %s", subject, recipient)
+        await aiosmtplib.send(
+            message,
+            hostname=SMTP_HOST,
+            port=SMTP_PORT,
+            username=SMTP_USER or None,
+            password=SMTP_PASSWORD or None,
+            start_tls=SMTP_STARTTLS and not SMTP_SSL,
+            use_tls=SMTP_SSL,
+            timeout=15,
+        )
+        logger.info("Email sent '%s' -> %s", subject, recipient)
     except Exception as e:
-        logger.exception("Email exception %s -> %s : %s", subject, recipient, e)
+        logger.exception("Email failed '%s' -> %s : %s", subject, recipient, e)
 
 
 def _dashboard_url(frontend_url: str, app_id: str | None = None) -> str:

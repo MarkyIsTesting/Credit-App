@@ -6,6 +6,7 @@ import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import ClientDashboard from "@/pages/ClientDashboard";
+import AdminDashboard from "@/pages/AdminDashboard";
 import ApplicationDetail from "@/pages/ApplicationDetail";
 import NewApplication from "@/pages/NewApplication";
 import GrainOverlay from "@/components/GrainOverlay";
@@ -75,6 +76,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ApplicationDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminDashboard />
                   </ProtectedRoute>
                 }
               />

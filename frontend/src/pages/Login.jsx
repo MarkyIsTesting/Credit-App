@@ -20,9 +20,10 @@ export default function Login() {
     setLoading(true);
     setError("");
     try {
-      await login(email, password);
+      const u = await login(email, password);
       toast.success(t("auth.loginSuccess"));
-      navigate(loc.state?.from || "/client", { replace: true });
+      const fallback = u?.role === "admin" ? "/admin" : "/client";
+      navigate(loc.state?.from || fallback, { replace: true });
     } catch (err) {
       const msg = formatApiErrorDetail(err?.response?.data?.detail) || err.message;
       setError(msg);

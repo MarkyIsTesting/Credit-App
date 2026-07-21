@@ -83,6 +83,9 @@ android-sdk/
 .env
 .env.*
 *.env
+# ...but keep the committable templates
+!**/.env.example
+!.env.docker.example
 credentials.json
 *.key
 .credentials

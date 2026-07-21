@@ -1,0 +1,65 @@
+# ===== EuroKredit — full stack (MongoDB + FastAPI + React/nginx) =====
+# Usage:
+#   cp .env.docker.example .env      # then edit secrets
+#   docker compose up -d --build
+# App:     http://localhost:8080
+# The frontend (nginx) reverse-proxies /api → backend, so everything is same-origin.
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Not exposed to the host by default; only the backend talks to it.
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGO_URL: mongodb://mongo:27017
+      DB_NAME: ${DB_NAME:-eurokredit}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      # Same-origin behind nginx over HTTP → secure cookies off, samesite lax.
+      # For HTTPS production set COOKIE_SECURE=true.
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      COOKIE_SAMESITE: ${COOKIE_SAMESITE:-lax}
+      CORS_ORIGINS: ${PUBLIC_URL:-http://localhost:8080}
+      FRONTEND_URL: ${PUBLIC_URL:-http://localhost:8080}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@eurokredit.fr}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin2026!}
+      # SMTP (optional — leave SMTP_HOST empty to disable email sending)
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-no-reply@eurokredit.fr}
+      SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
+      SMTP_SSL: ${SMTP_SSL:-false}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-EuroKredit}
+    # Not exposed to the host; reached through the frontend's /api proxy.
+    expose:
+      - "8001"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Empty → app calls relative "/api", which nginx proxies to backend.
+        REACT_APP_BACKEND_URL: ""
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+
+volumes:
+  mongo_data:

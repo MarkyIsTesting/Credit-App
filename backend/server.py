@@ -33,6 +33,12 @@ JWT_ALGORITHM = "HS256"
 ACCESS_MINUTES = 60 * 24  # 1 day for convenience
 REFRESH_DAYS = 7
 
+# Cookie policy (env-driven so local HTTP dev works, prod HTTPS stays secure).
+# Local dev over http://  -> COOKIE_SECURE=false, COOKIE_SAMESITE=lax
+# Cross-site prod over https:// -> COOKIE_SECURE=true,  COOKIE_SAMESITE=none
+COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "false").lower() == "true"
+COOKIE_SAMESITE = os.environ.get("COOKIE_SAMESITE", "lax").lower()
+
 app = FastAPI(title="EuroKredit API")
 api_router = APIRouter(prefix="/api")
 
@@ -76,8 +82,8 @@ def create_refresh_token(user_id: str) -> str:
 def set_auth_cookies(response: Response, user_id: str, email: str):
     access = create_access_token(user_id, email)
     refresh = create_refresh_token(user_id)
-    response.set_cookie("access_token", access, httponly=True, secure=True, samesite="none", max_age=ACCESS_MINUTES * 60, path="/")
-    response.set_cookie("refresh_token", refresh, httponly=True, secure=True, samesite="none", max_age=REFRESH_DAYS * 86400, path="/")
+    response.set_cookie("access_token", access, httponly=True, secure=COOKIE_SECURE, samesite=COOKIE_SAMESITE, max_age=ACCESS_MINUTES * 60, path="/")
+    response.set_cookie("refresh_token", refresh, httponly=True, secure=COOKIE_SECURE, samesite=COOKIE_SAMESITE, max_age=REFRESH_DAYS * 86400, path="/")
 
 
 # -------- Auth dependency --------
@@ -287,8 +293,8 @@ async def login(payload: LoginIn, request: Request, response: Response):
 
 @api_router.post("/auth/logout")
 async def logout(response: Response):
-    response.delete_cookie("access_token", path="/")
-    response.delete_cookie("refresh_token", path="/")
+    response.delete_cookie("access_token", path="/", samesite=COOKIE_SAMESITE, secure=COOKIE_SECURE)
+    response.delete_cookie("refresh_token", path="/", samesite=COOKIE_SAMESITE, secure=COOKIE_SECURE)
     return {"ok": True}
 
 
@@ -391,8 +397,11 @@ app.include_router(api_router)
 
 
 # -------- CORS --------
-frontend_url = os.environ.get("FRONTEND_URL")
-allowed_origins = [frontend_url] if frontend_url else ["*"]
+# Accept a comma-separated list via CORS_ORIGINS, fall back to FRONTEND_URL, then localhost dev.
+# NOTE: "*" is intentionally NOT used — browsers reject wildcard origins on credentialed
+# (cookie) requests, so an explicit origin list is required for auth to work cross-origin.
+_origins_raw = os.environ.get("CORS_ORIGINS") or os.environ.get("FRONTEND_URL") or "http://localhost:3000"
+allowed_origins = [o.strip() for o in _origins_raw.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
@@ -438,3 +447,15 @@ async def startup():
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+
+# -------- Entrypoint --------
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(
+        "server:app",
+        host=os.environ.get("HOST", "0.0.0.0"),
+        port=int(os.environ.get("PORT", "8001")),
+        reload=os.environ.get("RELOAD", "false").lower() == "true",
+    )

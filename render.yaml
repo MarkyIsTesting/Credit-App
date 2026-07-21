@@ -1,0 +1,53 @@
+# ===== Blueprint Render (https://render.com) =====
+# Déploie le backend (Docker) + le frontend (site statique).
+# La base de données est MongoDB Atlas (gratuit) — renseignez MONGO_URL dans le dashboard.
+#
+# Après le 1er déploiement, complétez les variables marquées "sync: false" avec les
+# URLs générées (voir README / instructions), puis relancez un deploy.
+
+services:
+  # ---- Backend : API FastAPI (image Docker) ----
+  - type: web
+    name: eurokredit-backend
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /api/
+    envVars:
+      - key: MONGO_URL          # URI MongoDB Atlas (mongodb+srv://...)
+        sync: false
+      - key: DB_NAME
+        value: eurokredit
+      - key: JWT_SECRET         # généré automatiquement par Render
+        generateValue: true
+      - key: COOKIE_SECURE      # HTTPS en prod → cookies sécurisés
+        value: "true"
+      - key: COOKIE_SAMESITE    # frontend et backend sur des domaines différents → none
+        value: none
+      - key: CORS_ORIGINS       # URL du frontend (à remplir après déploiement)
+        sync: false
+      - key: FRONTEND_URL       # idem (liens dans les emails)
+        sync: false
+      - key: ADMIN_EMAIL
+        value: admin@eurokredit.fr
+      - key: ADMIN_PASSWORD     # définissez un mot de passe admin
+        sync: false
+      # SMTP (optionnel) — laissez SMTP_HOST vide pour désactiver l'envoi d'emails
+      - key: SMTP_HOST
+        value: ""
+
+  # ---- Frontend : build React servi en statique ----
+  - type: web
+    name: eurokredit-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install --legacy-peer-deps && npm run build
+    staticPublishPath: ./build
+    envVars:
+      - key: REACT_APP_BACKEND_URL   # URL du backend (à remplir après déploiement)
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

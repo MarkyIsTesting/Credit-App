@@ -1,0 +1,29 @@
+# ===== Native install (no Docker) — compatible Python 3.13 =====
+# The pinned versions in requirements.txt target the Docker image (Python 3.12).
+# On a host with Python 3.13/3.14, some of those old pins have no prebuilt wheels
+# and would try to compile from source. This file relaxes the pins to versions
+# that ship 3.13 wheels, so `pip install` works out-of-the-box on the host.
+#
+#   py -3.13 -m venv <venv>   &&   pip install -r requirements-native.txt
+
+fastapi>=0.115
+uvicorn>=0.30
+watchfiles>=0.21
+python-dotenv>=1.0.1
+
+# Database
+motor>=3.6
+pymongo>=4.9
+
+# Validation / models
+pydantic>=2.9
+email-validator>=2.2.0
+
+# Auth
+pyjwt>=2.10.1
+bcrypt>=4.2
+
+# Email (standard SMTP)
+aiosmtplib>=3.0.1
+
+tzdata>=2024.2
